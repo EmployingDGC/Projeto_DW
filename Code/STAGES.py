@@ -3,42 +3,51 @@ from sqlalchemy.engine.mock import MockConnection
 import pandas as pd
 
 
-def partition_csv(path: str,
-                  delimiter: str,
-                  qty_parts: int,
-                  error_bad_lines: bool = True) -> list[pd.DataFrame]:
-    list_dataframe = []
+def convert_column_to_float64(column_data_frame: pd.DataFrame,
+                              default: float) -> pd.DataFrame:
+    return column_data_frame.apply(
+        lambda num:
+        num
+        if str(num).isnumeric()
+        else str(num).replace(",", ".")
+        if str(num).replace(",", ".").isnumeric()
+        else default
+    ).astype("float64")
 
-    if qty_parts <= 0:
-        return list_dataframe
 
-    frame_csv = pd.read_csv(
-        path,
-        sep=delimiter,
-        low_memory=False,
-        error_bad_lines=error_bad_lines
-    )
+def convert_column_to_int64(column_data_frame: pd.DataFrame,
+                            default: int) -> pd.DataFrame:
+    return column_data_frame.apply(
+        lambda num:
+        num
+        if str(num).isnumeric()
+        else default
+    ).astype("int64")
 
-    qty_rows_per_dataframe = frame_csv.shape[0] // qty_parts
-    qty_over_rows = frame_csv.shape[0] % qty_parts
 
-    start = 0
-    end = qty_rows_per_dataframe
+def create_table(database: MockConnection,
+                 schema_name: str,
+                 table_name: str,
+                 table_vars: dict[str, str]) -> None:
+    str_vars = ""
 
-    for i in range(qty_parts):
-        list_dataframe.append(
-            frame_csv.iloc[start:end]
-        )
+    for k, v in table_vars.items():
+        str_vars += f"{k} {v}, "
 
-        start += qty_rows_per_dataframe
-        end += qty_rows_per_dataframe
+    str_vars = str_vars[:-2]
 
-    if qty_over_rows > 0:
-        list_dataframe.append(
-            frame_csv.iloc[start:start + qty_over_rows]
-        )
+    database.execute(f"create table if not exists \"{schema_name}\".\"{table_name}\" ({str_vars})")
 
-    return list_dataframe
+
+def create_schema(database: MockConnection,
+                  schema_name: str) -> None:
+    database.execute(f" create schema if not exists {schema_name}")
+
+
+def drop_table(database: MockConnection,
+               schema_name: str,
+               table_name: str) -> None:
+    database.execute(f" drop table if exists \"{schema_name}\".\"{table_name}\"")
 
 
 def load_stg_to_dw(conn_input: MockConnection,
@@ -75,13 +84,59 @@ def create_stg(path: str,
     )
 
 
+def partition_csv(path: str,
+                  delimiter: str,
+                  qty_parts: int,
+                  error_bad_lines: bool = True) -> list[pd.DataFrame]:
+    list_dataframe = []
+
+    if qty_parts <= 0:
+        return list_dataframe
+
+    frame_csv = pd.read_csv(
+        path,
+        sep=delimiter,
+        low_memory=False,
+        error_bad_lines=error_bad_lines
+    )
+
+    qty_rows = frame_csv.shape[0]
+
+    qty_rows_per_dataframe = qty_rows // qty_parts
+    qty_over_rows = qty_rows % qty_parts
+
+    start = 0
+    end = qty_rows_per_dataframe
+
+    if end < 1:
+        qty_parts = 1
+        qty_over_rows = 0
+        end = qty_rows
+
+    for i in range(qty_parts):
+        list_dataframe.append(
+            frame_csv.iloc[start:end]
+        )
+
+        start += qty_rows_per_dataframe
+        end += qty_rows_per_dataframe
+
+    if qty_over_rows > 0:
+        list_dataframe.append(
+            frame_csv.iloc[start:]
+        )
+
+    return list_dataframe
+
+
 def create_optimized_table_from_csv(path: str,
                                     delimiter: str,
                                     schema_name: str,
                                     table_name: str,
                                     qty_parts: int,
                                     conn_output: MockConnection,
-                                    error_bad_lines: bool = True) -> bool:
+                                    error_bad_lines: bool = True,
+                                    replace_table: bool = False) -> bool:
     if qty_parts <= 0:
         return False
 
@@ -94,6 +149,13 @@ def create_optimized_table_from_csv(path: str,
 
     if len(partitions) == 0:
         return False
+
+    if replace_table:
+        drop_table(
+            database=conn_output,
+            schema_name=schema_name,
+            table_name=table_name
+        )
 
     for frame in partitions:
         frame.to_sql(

@@ -1,4 +1,4 @@
-import time
+from time import time
 
 from sqlalchemy.engine.mock import MockConnection
 
@@ -9,55 +9,8 @@ import STAGES as stgs
 import DIMENSOES as dms
 
 
-def convert_column_to_float64(column_data_frame: pd.DataFrame,
-                              default: float) -> pd.DataFrame:
-    return column_data_frame.apply(
-        lambda num:
-        num
-        if str(num).isnumeric()
-        else str(num).replace(",", ".")
-        if str(num).replace(",", ".").isnumeric()
-        else default
-    ).astype("float64")
-
-
-def convert_column_to_int64(column_data_frame: pd.DataFrame,
-                            default: int) -> pd.DataFrame:
-    return column_data_frame.apply(
-        lambda num:
-        num
-        if str(num).isnumeric()
-        else default
-    ).astype("int64")
-
-
-def create_table(database: MockConnection,
-                 schema_name: str,
-                 table_name: str,
-                 table_vars: dict[str, str]) -> None:
-    str_vars = ""
-
-    for k, v in table_vars.items():
-        str_vars += f"{k} {v}, "
-
-    str_vars = str_vars[:-2]
-
-    database.execute(f"create table if not exists \"{schema_name}\".\"{table_name}\" ({str_vars})")
-
-
-def create_schema(database: MockConnection,
-                  schema_name: str) -> None:
-    database.execute(f" create schema if not exists {schema_name}")
-
-
-def drop_table(database: MockConnection,
-               schema_name: str,
-               table_name: str) -> None:
-    database.execute(f" drop table if exists \"{schema_name}\".\"{table_name}\"")
-
-
 if __name__ == '__main__':
-    time_exec = time.time()
+    time_exec = time()
 
     path_ts_resultado_aluno = "../Datasets/TS_RESULTADO_ALUNO.csv"
     path_escolas = "../Datasets/ESCOLAS.CSV"
@@ -109,28 +62,34 @@ if __name__ == '__main__':
     #     low_memory=False
     # )
 
+    # stgs.create_optimized_table_from_csv(
+    #     path=path_ts_resultado_aluno,
+    #     delimiter=";",
+    #     schema_name="stage",
+    #     table_name="STG_TS_RESULTADO_ALUNO",
+    #     qty_parts=80,
+    #     conn_output=db
+    # )
+
+    # stgs.create_optimized_table_from_csv(
+    #     path=path_escolas,
+    #     delimiter="|",
+    #     schema_name="stage",
+    #     table_name="STG_ESCOLAS",
+    #     qty_parts=80,
+    #     conn_output=db,
+    #     replace_table=True
+    # )
+
     stgs.create_optimized_table_from_csv(
-        path=path_ts_resultado_aluno,
+        path=path_dados_ibge,
         delimiter=";",
         schema_name="stage",
-        table_name="STG_TS_RESULTADO_ALUNO",
+        table_name="STG_DADOS_IBGE",
         qty_parts=80,
-        conn_output=db
+        conn_output=db,
+        replace_table=True
     )
-
-    # stgs.create_stg(
-    #     path=path_escolas,
-    #     name="STG_ESCOLAS",
-    #     delimiter="|",
-    #     conn_output=db
-    # )
-
-    # stgs.create_stg(
-    #     path=path_dados_ibge,
-    #     name="STG_DADOS_IBGE",
-    #     delimiter=";",
-    #     conn_output=db
-    # )
 
     # frame_select_stg_resultado_aluno = dms.convert_table_to_dataframe(
     #     conn_input=db,
@@ -351,4 +310,4 @@ if __name__ == '__main__':
     #     frame_ts_resultado_aluno["DESVIO_PADRAO_MT_SAEB"], 0
     # )
 
-    print(f"Finalizado com sucesso em {(time.time() - time_exec)} segundos")
+    print(f"Finalizado com sucesso em {(time() - time_exec)} segundos")
