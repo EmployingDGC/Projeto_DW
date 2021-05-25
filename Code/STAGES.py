@@ -9,17 +9,27 @@ def get_all_stages(conn_input: MockConnection) -> list[pd.DataFrame]:
         utl.convert_table_to_dataframe(
             conn_input=conn_input,
             schema_name="stage",
+            table_name="STG_ESCOLAS"
+        ),
+        utl.convert_table_to_dataframe(
+            conn_input=conn_input,
+            schema_name="stage",
+            table_name="STG_DADOS_IBGE"
+        ),
+        utl.convert_table_to_dataframe(
+            conn_input=conn_input,
+            schema_name="stage",
             table_name="STG_TS_RESULTADO_ALUNO",
-        ),
-        utl.convert_table_to_dataframe(
-            conn_input=conn_input,
-            schema_name="stage",
-            table_name="STG_ESCOLAS",
-        ),
-        utl.convert_table_to_dataframe(
-            conn_input=conn_input,
-            schema_name="stage",
-            table_name="STG_DADOS_IBGE",
+            columns=[
+                "ID_MUNICIPIO",
+                "ID_UF",
+                "ID_LOCALIZACAO",
+                "ID_ESCOLA",
+                "ID_DEPENDENCIA_ADM",
+                "ID_TURMA",
+                "ID_TURNO",
+                "ID_SERIE"
+            ]
         )
     ]
 
@@ -42,7 +52,6 @@ def create_all_stages(conn_output: MockConnection) -> None:
         delimiter=";",
         schema_name="stage",
         table_name="STG_TS_RESULTADO_ALUNO",
-        qty_parts=80,
         conn_output=conn_output,
         replace_table=True
     )
@@ -52,7 +61,6 @@ def create_all_stages(conn_output: MockConnection) -> None:
         delimiter="|",
         schema_name="stage",
         table_name="STG_ESCOLAS",
-        qty_parts=80,
         conn_output=conn_output,
         replace_table=True
     )
@@ -62,7 +70,6 @@ def create_all_stages(conn_output: MockConnection) -> None:
         delimiter=";",
         schema_name="stage",
         table_name="STG_DADOS_IBGE",
-        qty_parts=80,
         conn_output=conn_output,
         replace_table=True
     )

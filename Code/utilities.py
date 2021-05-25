@@ -52,10 +52,11 @@ def create_optimized_table_from_csv(path: str,
                                     delimiter: str,
                                     schema_name: str,
                                     table_name: str,
-                                    qty_parts: int,
                                     conn_output: MockConnection,
+                                    qty_parts: int = 100,
                                     error_bad_lines: bool = True,
-                                    replace_table: bool = False) -> bool:
+                                    replace_table: bool = False,
+                                    index: bool = False) -> bool:
     if qty_parts <= 0:
         return False
 
@@ -81,7 +82,8 @@ def create_optimized_table_from_csv(path: str,
             name=table_name.upper(),
             con=conn_output,
             schema=schema_name.lower(),
-            if_exists="append"
+            if_exists="append",
+            index=index
         )
 
     return True
@@ -90,13 +92,66 @@ def create_optimized_table_from_csv(path: str,
 def convert_table_to_dataframe(conn_input: MockConnection,
                                schema_name: str,
                                table_name: str,
-                               columns_name: list[str] = None) -> pd.DataFrame:
-    return pd.DataFrame(
-        [x for x in conn_input.execute(
-            f" select * from \"{schema_name.lower()}\".\"{table_name.upper()}\""
-        )],
-        columns=columns_name
+                               columns: list[str] = "*",
+                               qty_parts: int = 100) -> pd.DataFrame:
+    str_columns = ""
+
+    if columns[0] == "*" or len(columns) == 0:
+        str_columns = "*"
+
+    else:
+        for col in columns:
+            str_columns += f"\"{col}\", "
+
+        str_columns = str_columns[:-2]
+
+    select = conn_input.execute(
+        f"select {str_columns} "
+        f"from \"{schema_name.lower()}\".\"{table_name.upper()}\" "
     )
+
+    if qty_parts <= 0:
+        qty_parts = 100
+
+    data_frame = pd.DataFrame()
+
+    select_list = [x for x in select]
+
+    qty_rows = len(select_list)
+
+    qty_rows_per_dataframe = qty_rows // qty_parts
+    qty_over_rows = qty_rows % qty_parts
+
+    start = 0
+    end = qty_rows_per_dataframe
+
+    if end < 1:
+        qty_parts = 1
+        qty_over_rows = 0
+        end = qty_rows
+
+    for i in range(qty_parts):
+        data_frame = pd.concat([
+            data_frame,
+            pd.DataFrame(
+                select_list[start:end],
+                columns=select.keys()
+            )
+        ])
+
+        start += qty_rows_per_dataframe
+        end += qty_rows_per_dataframe
+
+    if qty_over_rows > 0:
+        data_frame = pd.concat([
+            data_frame,
+            pd.DataFrame(
+                select_list[start:end],
+                columns=select.keys(),
+            )
+        ])
+
+    return data_frame.reset_index().drop("index", axis=1)
 
 
 def convert_column_to_float64(column_data_frame: pd.DataFrame,
