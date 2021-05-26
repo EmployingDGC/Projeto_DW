@@ -9,7 +9,17 @@ def get_all_stages(conn_input: MockConnection) -> list[pd.DataFrame]:
         utl.convert_table_to_dataframe(
             conn_input=conn_input,
             schema_name="stage",
-            table_name="STG_ESCOLAS"
+            table_name="STG_ESCOLAS",
+            columns=[
+                "ANO_CENSO",
+                "PK_COD_ENTIDADE",
+                "NO_ENTIDADE",
+                "SIGLA",
+                "FK_COD_MUNICIPIO",
+                "FK_COD_DISTRITO",
+                "ID_DEPENDENCIA_ADM",
+                "ID_LOCALIZACAO"
+            ]
         ),
         utl.convert_table_to_dataframe(
             conn_input=conn_input,
@@ -28,7 +38,12 @@ def get_all_stages(conn_input: MockConnection) -> list[pd.DataFrame]:
                 "ID_DEPENDENCIA_ADM",
                 "ID_TURMA",
                 "ID_TURNO",
-                "ID_SERIE"
+                "ID_SERIE",
+                "IN_SITUACAO_CENSO",
+                "IN_PREENCHIMENTO",
+                "IN_PROFICIENCIA",
+                "PROFICIENCIA_LP_SAEB",
+                "PROFICIENCIA_MT_SAEB"
             ]
         )
     ]

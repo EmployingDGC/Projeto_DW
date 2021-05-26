@@ -10,6 +10,8 @@ import DIMENSOES as dms
 if __name__ == '__main__':
     time_exec = time()
 
+    pd.set_option("display.max_columns", None)
+
     default_sk = [-1, -2, -3]
     default_cd = [-1, -2, -3]
     default_ds = ["Não Informado", "Não Aplicável", "Desconhecido"]
@@ -30,39 +32,98 @@ if __name__ == '__main__':
     frame_dados_ibge = frame_list_stages[1]
     frame_resultado_aluno = frame_list_stages[2]
 
-    # frame_resultado_aluno["DS_MUNICIPIO"] = default_ds[0]
-    # frame_resultado_aluno["DS_UF"] = default_ds[0]
-    # frame_resultado_aluno["DS_MUNICIPIO"] = default_ds[0]
-    # frame_resultado_aluno["DS_UF"] = default_ds[0]
-    # frame_resultado_aluno["DS_LOCALIZACAO"] = default_ds[0]
-    # frame_resultado_aluno["DS_ESCOLA"] = default_ds[0]
-    # frame_resultado_aluno["DS_DEPENDENCIA_ADM"] = default_ds[0]
-    # frame_resultado_aluno["DS_TURMA"] = default_ds[0]
-    # frame_resultado_aluno["DS_TURNO"] = default_ds[0]
-    # frame_resultado_aluno["DS_SERIE"] = default_ds[0]
-
-    frame_resultado_aluno.rename(
+    frame_dados_ibge.rename(
         columns={
-            "ID_MUNICIPIO": "CD_MUNICIPIO",
-            "ID_UF": "CD_UF",
-            "ID_LOCALIZACAO": "CD_LOCALIZACAO",
-            "ID_ESCOLA": "CD_ESCOLA",
-            "ID_DEPENDENCIA_ADM": "CD_DEPENDENCIA_ADM",
-            "ID_TURMA": "CD_TURMA",
-            "ID_TURNO": "CD_TURNO",
-            "ID_SERIE": "CD_SERIE"
+            "Cód.": "CD",
+            "Brasil, Grande Região, Unidade da Federação e Município": "DS"
         },
         inplace=True
     )
 
-    frame_localidade = frame_resultado_aluno.merge(
-        frame_dados_ibge,
-        how="left",
-        left_on="CD_MUNICIPIO",
-        right_on="Cód."
+    frame_mu_dados_ibge = frame_dados_ibge.query(
+        f"Nível == 'MU'"
+    )[["CD", "DS"]]
+
+    frame_uf_dados_ibge = frame_dados_ibge.query(
+        f"Nível == 'UF'"
+    )[["CD", "DS"]]
+
+    frame_d_localidade = pd.DataFrame()
+    frame_d_escola = pd.DataFrame()
+    frame_f_prova = pd.DataFrame()
+
+    frame_d_localidade["DS_MUNICIPIO"] = frame_resultado_aluno.merge(
+        frame_mu_dados_ibge,
+        how="inner",
+        left_on="ID_MUNICIPIO",
+        right_on="CD"
+    )["DS"].apply(
+        lambda ds: str(ds)[:-5]
     )
 
-    print(frame_localidade.columns)
+    frame_d_localidade["DS_UF"] = frame_resultado_aluno.merge(
+        frame_uf_dados_ibge,
+        how="inner",
+        left_on="ID_UF",
+        right_on="CD"
+    )["DS"]
+
+    frame_d_localidade["CD_MUNICIPIO"] = frame_resultado_aluno.merge(
+        frame_mu_dados_ibge,
+        how="inner",
+        left_on="ID_MUNICIPIO",
+        right_on="CD"
+    )["CD"]
+
+    frame_d_localidade["CD_UF"] = frame_resultado_aluno.merge(
+        frame_uf_dados_ibge,
+        how="inner",
+        left_on="ID_UF",
+        right_on="CD"
+    )["CD"]
+
+    frame_d_escola["DS_LOCALIZACAO"] = frame_escolas["ID_LOCALIZACAO"].apply(
+        lambda num:
+        "Urbana" if num == 1 else
+        "Rural" if num == 2 else
+        default_ds[0]
+    )
+
+    frame_d_escola["CD_LOCALIZACAO"] = frame_escolas["ID_LOCALIZACAO"]
+
+    frame_d_escola["NO_ESCOLA"] = frame_escolas["NO_ENTIDADE"]
+
+    frame_d_escola["DS_DEPENDENCIA_ADM"] = frame_escolas["ID_DEPENDENCIA_ADM"].apply(
+        lambda num:
+        "Federal" if num == 1 else
+        "Estadual" if num == 2 else
+        "Municipal" if num == 3 else
+        "Privada" if num == 4 else
+        default_ds[0]
+    )
+
+    frame_d_escola["CD_DEPENDENCIA_ADM"] = frame_escolas["ID_DEPENDENCIA_ADM"]
+
+    frame_f_prova["FL_SITUACAO_CENSO"] = frame_resultado_aluno["IN_SITUACAO_CENSO"].apply(
+        lambda num:
+        num == 1
+    )
+
+    frame_f_prova["FL_PREENCHIMENTO"] = frame_resultado_aluno["IN_PREENCHIMENTO"].apply(
+        lambda num:
+        num == 1
+    )
+
+    frame_f_prova["FL_PROFICIENCIA"] = frame_resultado_aluno["IN_PROFICIENCIA"].apply(
+        lambda num:
+        num == 1
+    )
+
+    print(frame_d_localidade)
+    print()
+    print(frame_d_escola)
+    print()
+    print(frame_f_prova)
 
     # dms.create_all_dimensions(
     #     conn_output=conn_database,
@@ -74,8 +135,5 @@ if __name__ == '__main__':
     #         "D_LOCALIDADE"
     #     ]
     # )
-
-    # for index, row in frame_list_stages[0].iterrows():
-    #     if row[""]
 
     print(f"\nFinalizado com sucesso em {round(time() - time_exec)} segundos")
