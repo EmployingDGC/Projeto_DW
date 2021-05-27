@@ -154,26 +154,23 @@ def convert_table_to_dataframe(conn_input: MockConnection,
     return data_frame.reset_index().drop("index", axis=1)
 
 
-def convert_column_to_float64(column_data_frame: pd.DataFrame,
-                              default: float) -> pd.DataFrame:
+def convert_column_to_float64(column_data_frame: pd.Series,
+                              default: float) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
-        num
-        if str(num).isnumeric()
-        else str(num).replace(",", ".")
-        if str(num).replace(",", ".").isnumeric()
-        else default
-    ).astype("float64")
+        float(num) if str(num).isnumeric() else
+        float(str(num).replace(",", ".")) if str(num).replace(",", ".").isnumeric() else
+        float(default)
+    )
 
 
-def convert_column_to_int64(column_data_frame: pd.DataFrame,
-                            default: int) -> pd.DataFrame:
+def convert_column_to_int64(column_data_frame: pd.Series,
+                            default: int) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
-        num
-        if str(num).isnumeric()
-        else default
-    ).astype("int64")
+        int(num) if str(num).isnumeric() else
+        int(default)
+    )
 
 
 def create_table(conn_output: MockConnection,
