@@ -7,9 +7,6 @@ import STAGES as stgs
 import DIMENSOES as dms
 import FATO as ft
 
-import DEFAULTS_VALUES as DFLT
-import utilities as utl
-
 
 if __name__ == '__main__':
     time_exec = time()
@@ -29,5 +26,7 @@ if __name__ == '__main__':
     # dms.run(conn_database)
 
     # ft.run(conn_database)
+
+    # print(ft.get_fato(conn_database))
 
     print(f"\nFinalizado com sucesso em {round(time() - time_exec)} segundos\n")

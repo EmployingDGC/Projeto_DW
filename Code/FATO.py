@@ -110,7 +110,7 @@ def treat_f_prova_br(frame_ts_resultado_aluno: pd.DataFrame,
 def get_fato(conn_input: MockConnection) -> pd.DataFrame:
     return utl.convert_table_to_dataframe(
         conn_input=conn_input,
-        schema_name=DFLT.SCHEMA_NAMES[0],
+        schema_name=DFLT.SCHEMA_NAMES[1],
         table_name=DFLT.FATO_NAME
     )
 
