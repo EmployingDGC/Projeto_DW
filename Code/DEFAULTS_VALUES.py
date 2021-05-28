@@ -25,3 +25,7 @@ SCHEMA_NAMES = (
     "stage",
     "dw"
 )
+
+FATO_NAME = "F_PROVA_BR"
+
+TRUE_VALUES = ("TRUE", "1", "YES", "OK", "VERDADE", "V", "T")

@@ -8,24 +8,24 @@ import DEFAULTS_VALUES as DFLT
 def get_stg_escolas(conn_input: MockConnection) -> pd.DataFrame:
     return utl.convert_table_to_dataframe(
         conn_input=conn_input,
-        schema_name="stage",
-        table_name="STG_ESCOLAS"
+        schema_name=DFLT.SCHEMA_NAMES[0],
+        table_name=DFLT.STAGES_NAMES[1]
     )
 
 
 def get_stg_dados_ibge(conn_input: MockConnection) -> pd.DataFrame:
     return utl.convert_table_to_dataframe(
         conn_input=conn_input,
-        schema_name="stage",
-        table_name="STG_DADOS_IBGE"
+        schema_name=DFLT.SCHEMA_NAMES[0],
+        table_name=DFLT.STAGES_NAMES[0]
     )
 
 
 def get_stg_ts_resultado_aluno(conn_input: MockConnection) -> pd.DataFrame:
     frame = utl.convert_table_to_dataframe(
         conn_input=conn_input,
-        schema_name="stage",
-        table_name="STG_TS_RESULTADO_ALUNO"
+        schema_name=DFLT.SCHEMA_NAMES[0],
+        table_name=DFLT.STAGES_NAMES[2]
     )
 
     return frame.drop(
@@ -56,7 +56,7 @@ def run(conn_output: MockConnection) -> None:
         path=path_ts_resultado_aluno,
         delimiter=";",
         schema_name=DFLT.SCHEMA_NAMES[0],
-        table_name="STG_TS_RESULTADO_ALUNO",
+        table_name=DFLT.STAGES_NAMES[2],
         conn_output=conn_output,
         replace_table=True,
         columns=[
@@ -75,7 +75,7 @@ def run(conn_output: MockConnection) -> None:
         path=path_escolas,
         delimiter="|",
         schema_name=DFLT.SCHEMA_NAMES[0],
-        table_name="STG_ESCOLAS",
+        table_name=DFLT.STAGES_NAMES[1],
         conn_output=conn_output,
         replace_table=True,
         columns=[
@@ -94,7 +94,7 @@ def run(conn_output: MockConnection) -> None:
         path=path_dados_ibge,
         delimiter=";",
         schema_name=DFLT.SCHEMA_NAMES[0],
-        table_name="STG_DADOS_IBGE",
+        table_name=DFLT.STAGES_NAMES[0],
         conn_output=conn_output,
         replace_table=True
     )

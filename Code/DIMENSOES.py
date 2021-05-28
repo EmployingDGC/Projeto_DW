@@ -57,6 +57,11 @@ def treat_d_localildade(dados_ibge: pd.DataFrame,
         right_on="CD"
     )["CD"]
 
+    frame_d_localidade.drop_duplicates(
+        subset="CD_MUNICIPIO",
+        inplace=True
+    )
+
     frame_d_localidade["SK_LOCALIDADE"] = utl.create_index_dataframe(
         data_frame=frame_d_localidade,
         first_index=1
@@ -101,7 +106,7 @@ def treat_d_escola(escolas: pd.DataFrame) -> pd.DataFrame:
 
 
 def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
-    frame_d_localidade = pd.DataFrame()
+    frame_d_turma = pd.DataFrame()
 
     resultado_aluno["ID_TURMA"] = utl.convert_column_to_int64(
         resultado_aluno["ID_TURMA"],
@@ -118,13 +123,13 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
         DFLT.CD[0]
     )
 
-    frame_d_localidade["CD_TURMA"] = resultado_aluno["ID_TURMA"]
+    frame_d_turma["CD_TURMA"] = resultado_aluno["ID_TURMA"]
 
-    frame_d_localidade["CD_TURNO"] = resultado_aluno["ID_TURNO"]
+    frame_d_turma["CD_TURNO"] = resultado_aluno["ID_TURNO"]
 
-    frame_d_localidade["CD_SERIE"] = resultado_aluno["ID_SERIE"]
+    frame_d_turma["CD_SERIE"] = resultado_aluno["ID_SERIE"]
 
-    frame_d_localidade["DS_TURNO"] = resultado_aluno["ID_TURNO"].apply(
+    frame_d_turma["DS_TURNO"] = resultado_aluno["ID_TURNO"].apply(
         lambda num:
         "Matutino" if num == 1 else
         "Vespertino" if num == 2 else
@@ -133,24 +138,24 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
         DFLT.DS[0]
     )
 
-    frame_d_localidade["DS_SERIE"] = resultado_aluno["ID_SERIE"].apply(
+    frame_d_turma["DS_SERIE"] = resultado_aluno["ID_SERIE"].apply(
         lambda num:
         "4ª série / 5º ano EF" if num == 5 else
         "8ª série / 9º ano EF" if num == 9 else
         DFLT.DS[0]
     )
 
-    frame_d_localidade.drop_duplicates(
+    frame_d_turma.drop_duplicates(
         subset="CD_TURMA",
         inplace=True
     )
 
-    frame_d_localidade["SK_TURMA"] = utl.create_index_dataframe(
-        data_frame=frame_d_localidade,
+    frame_d_turma["SK_TURMA"] = utl.create_index_dataframe(
+        data_frame=frame_d_turma,
         first_index=1
     )
 
-    return frame_d_localidade
+    return frame_d_turma
 
 
 def treat_all_dimensions(dados_ibge: pd.DataFrame,

@@ -2,6 +2,8 @@ from sqlalchemy.engine.mock import MockConnection
 
 import pandas as pd
 
+import DEFAULTS_VALUES as DFLT
+
 
 def partition_csv(path: str,
                   delimiter: str,
@@ -213,7 +215,7 @@ def convert_table_to_dataframe(conn_input: MockConnection,
 def convert_column_to_boolean(column_data_frame: pd.Series) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
-        str(num).upper() in ("TRUE", "1", "YES", "OK", "VERDADE")
+        str(num).upper() in DFLT.TRUE_VALUES
     )
 
 
