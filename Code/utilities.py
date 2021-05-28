@@ -5,7 +5,8 @@ import pandas as pd
 
 def partition_csv(path: str,
                   delimiter: str,
-                  qty_parts: int = 1,
+                  qty_parts: int = 100,
+                  columns: list[str] = None,
                   error_bad_lines: bool = True) -> list[pd.DataFrame]:
     list_dataframe = []
 
@@ -16,6 +17,7 @@ def partition_csv(path: str,
         path,
         sep=delimiter,
         low_memory=False,
+        usecols=columns,
         error_bad_lines=error_bad_lines
     )
 
@@ -84,23 +86,34 @@ def partition_data_frame(data_frame: pd.DataFrame,
     return list_data_frame
 
 
+def union_data_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
+    union_frame = pd.DataFrame()
+
+    for i in range(len(frames)):
+        union_frame = pd.concat([union_frame, frames[i]])
+
+    return union_frame.reset_index(drop=True)
+
+
 def create_optimized_table_from_csv(path: str,
                                     delimiter: str,
                                     schema_name: str,
                                     table_name: str,
                                     conn_output: MockConnection,
                                     qty_parts: int = 100,
+                                    columns: list[str] = None,
                                     error_bad_lines: bool = True,
                                     replace_table: bool = False,
                                     index: bool = False) -> bool:
     if qty_parts <= 0:
-        return False
+        qty_parts = 1
 
     partitions = partition_csv(
         path=path,
         delimiter=delimiter,
         qty_parts=qty_parts,
-        error_bad_lines=error_bad_lines
+        error_bad_lines=error_bad_lines,
+        columns=columns
     )
 
     if len(partitions) == 0:
@@ -197,12 +210,19 @@ def convert_table_to_dataframe(conn_input: MockConnection,
     return data_frame.reset_index(drop=True)
 
 
+def convert_column_to_boolean(column_data_frame: pd.Series) -> pd.Series:
+    return column_data_frame.apply(
+        lambda num:
+        str(num).upper() in ("TRUE", "1", "YES", "OK", "VERDADE")
+    )
+
+
 def convert_column_to_float64(column_data_frame: pd.Series,
                               default: float) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
         float(num) if str(num).isnumeric() else
-        float(str(num).replace(",", ".")) if str(num).replace(",", ".").isnumeric() else
+        float(str(num).replace(",", ".")) if str(num).replace(",", ".").replace(".", "").isnumeric() else
         float(default)
     )
 
@@ -212,6 +232,7 @@ def convert_column_to_int64(column_data_frame: pd.Series,
     return column_data_frame.apply(
         lambda num:
         int(num) if str(num).isnumeric() else
+        int(str(num).split(",")[0].split(".")[0]) if str(num).replace(",", ".").replace(".", "").isnumeric() else
         int(default)
     )
 

@@ -3,6 +3,7 @@ from sqlalchemy.engine.mock import MockConnection
 import pandas as pd
 
 import utilities as utl
+import STAGES as stgs
 import DEFAULTS_VALUES as DFLT
 
 
@@ -78,6 +79,8 @@ def treat_d_escola(escolas: pd.DataFrame) -> pd.DataFrame:
 
     frame_d_escola["NO_ESCOLA"] = escolas["NO_ENTIDADE"]
 
+    frame_d_escola["CD_ESCOLA"] = escolas["PK_COD_ENTIDADE"]
+
     frame_d_escola["DS_DEPENDENCIA_ADM"] = escolas["ID_DEPENDENCIA_ADM"].apply(
         lambda num:
         "Federal" if num == 1 else
@@ -101,7 +104,7 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
     frame_d_localidade = pd.DataFrame()
 
     resultado_aluno["ID_TURMA"] = utl.convert_column_to_int64(
-        resultado_aluno["ID_TURNO"],
+        resultado_aluno["ID_TURMA"],
         DFLT.CD[0]
     )
 
@@ -111,7 +114,7 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
     )
 
     resultado_aluno["ID_SERIE"] = utl.convert_column_to_int64(
-        resultado_aluno["ID_TURNO"],
+        resultado_aluno["ID_SERIE"],
         DFLT.CD[0]
     )
 
@@ -137,7 +140,12 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
         DFLT.DS[0]
     )
 
-    frame_d_localidade["SK_LOCALIDADE"] = utl.create_index_dataframe(
+    frame_d_localidade.drop_duplicates(
+        subset="CD_TURMA",
+        inplace=True
+    )
+
+    frame_d_localidade["SK_TURMA"] = utl.create_index_dataframe(
         data_frame=frame_d_localidade,
         first_index=1
     )
@@ -191,3 +199,20 @@ def create_all_dimensions(conn_output: MockConnection,
             )
 
     return True
+
+
+def run(conn_output: MockConnection) -> None:
+    frames = stgs.get_all_stages(conn_output)
+
+    list_dimensions = treat_all_dimensions(
+        escolas=frames[0],
+        dados_ibge=frames[1],
+        resultado_aluno=frames[2]
+    )
+
+    create_all_dimensions(
+        conn_output=conn_output,
+        schema_name=DFLT.SCHEMA_NAMES[1],
+        frames=list_dimensions,
+        dimensions_names=DFLT.DIMENSIONS_NAMES
+    )

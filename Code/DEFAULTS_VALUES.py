@@ -9,6 +9,12 @@ DIMENSIONS_NAMES = (
     "D_TURMA"
 )
 
+SK_NAMES = (
+    "SK_LOCALIDADE",
+    "SK_ESCOLA",
+    "SK_TURMA"
+)
+
 STAGES_NAMES = (
     "STG_DADOS_IBGE",
     "STG_ESCOLAS",

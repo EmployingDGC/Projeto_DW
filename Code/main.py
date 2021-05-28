@@ -5,11 +5,13 @@ import pandas as pd
 import CONEXAO as conn
 import STAGES as stgs
 import DIMENSOES as dms
+import FATO as ft
+
 import DEFAULTS_VALUES as DFLT
+import utilities as utl
 
 
 if __name__ == '__main__':
-    time_initial = time()
     time_exec = time()
 
     pd.set_option("display.max_columns", None)
@@ -22,46 +24,42 @@ if __name__ == '__main__':
         port=5432
     )
 
-    # stgs.create_all_stages(conn_database)
+    # stgs.run(conn_database)
 
-    frame_escolas = stgs.get_stg_escolas(conn_database)
+    # dms.run(conn_database)
 
-    print(f"\nFrame escola carregado em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
+    # frame_ts_resultado_aluno = pd.read_csv(
+    #     "../Datasets/TS_RESULTADO_ALUNO.csv",
+    #     delimiter=";",
+    #     usecols=[
+    #         "ID_PROVA_BRASIL",
+    #         "PROFICIENCIA_MT_SAEB",
+    #         "PROFICIENCIA_LP_SAEB",
+    #         "IN_SITUACAO_CENSO",
+    #         "IN_PREENCHIMENTO",
+    #         "IN_PROFICIENCIA"
+    #     ]
+    # )
+    #
+    # frame_ts_resultado_aluno["PROFICIENCIA_MT_SAEB"] = utl.convert_column_to_float64(
+    #     column_data_frame=frame_ts_resultado_aluno["PROFICIENCIA_MT_SAEB"],
+    #     default=DFLT.CD[0]
+    # )
+    #
+    # frame_ts_resultado_aluno["PROFICIENCIA_LP_SAEB"] = utl.convert_column_to_float64(
+    #     column_data_frame=frame_ts_resultado_aluno["PROFICIENCIA_LP_SAEB"],
+    #     default=DFLT.CD[0]
+    # )
+    #
+    # print(frame_ts_resultado_aluno)
 
-    frame_dados_ibge = stgs.get_stg_dados_ibge(conn_database)
+    dimensions = ft.get_all_dimensions(conn_database)
 
-    print(f"\nFrame dados IBGE carregado em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
+    for frame in dimensions:
+        print("*" + "-*" * 40)
+        print(frame.dtypes)
+        print()
+        print(frame)
+        print("*" + "-*" * 40)
 
-    frame_resultado_aluno = stgs.get_stg_ts_resultado_aluno(conn_database)
-
-    print(f"\nFrame resultado aluno carregado em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
-
-    list_dimensions = [
-        dms.treat_d_localildade(frame_dados_ibge, frame_resultado_aluno),
-        dms.treat_d_escola(frame_escolas),
-        dms.treat_d_turma(frame_resultado_aluno)
-    ]
-
-    print(f"\nDimensões tratadas em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
-
-    # for i in range(len(list_dimensions)):
-    #     print("-*" * 40)
-    #     print(list_dimensions[i].dtypes)
-    #     print()
-    #     print(list_dimensions[i])
-
-    dms.create_all_dimensions(
-        conn_output=conn_database,
-        schema_name=DFLT.SCHEMA_NAMES[1],
-        frames=list_dimensions,
-        dimensions_names=DFLT.DIMENSIONS_NAMES
-    )
-
-    print(f"\nDimensões carregada em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
-
-    print(f"\nFinalizado com sucesso em {round(time() - time_initial)} segundos\n")
+    print(f"\nFinalizado com sucesso em {round(time() - time_exec)} segundos\n")
