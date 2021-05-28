@@ -2,3 +2,20 @@
 SK = (-1, -2, -3)
 CD = (-1, -2, -3)
 DS = ("Não Informado", "Não Aplicável", "Desconhecido")
+
+DIMENSIONS_NAMES = (
+    "D_LOCALIDADE",
+    "D_ESCOLA",
+    "D_TURMA"
+)
+
+STAGES_NAMES = (
+    "STG_DADOS_IBGE",
+    "STG_ESCOLAS",
+    "STG_TS_RESULTADO_ALUNO"
+)
+
+SCHEMA_NAMES = (
+    "stage",
+    "dw"
+)

@@ -71,15 +71,15 @@ def create_optimized_table_from_csv(path: str,
         return False
 
     if replace_table:
-        drop_table(
+        drop_tables(
             conn_output=conn_output,
             schema_name=schema_name.lower(),
-            table_name=table_name.upper()
+            dimensions_names=[table_name]
         )
 
     for frame in partitions:
         frame.to_sql(
-            name=table_name.upper(),
+            name=table_name,
             con=conn_output,
             schema=schema_name.lower(),
             if_exists="append",
@@ -107,7 +107,7 @@ def convert_table_to_dataframe(conn_input: MockConnection,
 
     select = conn_input.execute(
         f"select {str_columns} "
-        f"from \"{schema_name.lower()}\".\"{table_name.upper()}\" "
+        f"from \"{schema_name.lower()}\".\"{table_name}\" "
     )
 
     if qty_parts <= 0:
@@ -184,7 +184,7 @@ def create_table(conn_output: MockConnection,
 
     str_vars = str_vars[:-2]
 
-    conn_output.execute(f"create table if not exists \"{schema_name.lower()}\".\"{table_name.upper()}\" ({str_vars})")
+    conn_output.execute(f"create table if not exists \"{schema_name.lower()}\".\"{table_name}\" ({str_vars})")
 
 
 def create_schema(database: MockConnection,
@@ -192,12 +192,16 @@ def create_schema(database: MockConnection,
     database.execute(f" create schema if not exists {schema_name.lower()}")
 
 
-def drop_table(conn_output: MockConnection,
-               schema_name: str,
-               table_name: str) -> None:
-    conn_output.execute(f" drop table if exists \"{schema_name.lower()}\".\"{table_name.upper()}\"")
+def drop_tables(conn_output: MockConnection,
+                schema_name: str,
+                dimensions_names: list[str]) -> None:
+    for i in range(len(dimensions_names)):
+        conn_output.execute(
+            f" drop table if exists \"{schema_name.lower()}\".\"{dimensions_names[i]}\""
+        )
 
 
-def drop_schema(conn_output: MockConnection,
-                schema_name: str) -> None:
-    conn_output.execute(f" drop schema if exists {schema_name.lower()}")
+def drop_schemas(conn_output: MockConnection,
+                 schemas_names: list[str]) -> None:
+    for schema in schemas_names:
+        conn_output.execute(f" drop schema if exists {schema.lower()}")

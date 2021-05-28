@@ -61,12 +61,6 @@ def get_all_stages(conn_input: MockConnection) -> list[pd.DataFrame]:
     ]
 
 
-def drop_all_stages(conn_output: MockConnection) -> None:
-    utl.drop_table(conn_output, "stage", "STG_TS_RESULTADO_ALUNO")
-    utl.drop_table(conn_output, "stage", "STG_ESCOLAS")
-    utl.drop_table(conn_output, "stage", "STG_DADOS_IBGE")
-
-
 def create_all_stages(conn_output: MockConnection) -> None:
     path_ts_resultado_aluno = "../Datasets/TS_RESULTADO_ALUNO.csv"
     path_escolas = "../Datasets/ESCOLAS.CSV"
