@@ -5,12 +5,12 @@ import pandas as pd
 
 def partition_csv(path: str,
                   delimiter: str,
-                  qty_parts: int,
+                  qty_parts: int = 1,
                   error_bad_lines: bool = True) -> list[pd.DataFrame]:
     list_dataframe = []
 
     if qty_parts <= 0:
-        return list_dataframe
+        qty_parts = 1
 
     frame_csv = pd.read_csv(
         path,
@@ -46,6 +46,42 @@ def partition_csv(path: str,
         )
 
     return list_dataframe
+
+
+def partition_data_frame(data_frame: pd.DataFrame,
+                         qty_parts: int = 100) -> list[pd.DataFrame]:
+    list_data_frame = []
+
+    if qty_parts <= 0:
+        qty_parts = 1
+
+    qty_rows = data_frame.shape[0]
+
+    qty_rows_per_dataframe = qty_rows // qty_parts
+    qty_over_rows = qty_rows % qty_parts
+
+    start = 0
+    end = qty_rows_per_dataframe
+
+    if end < 1:
+        qty_parts = 1
+        qty_over_rows = 0
+        end = qty_rows
+
+    for i in range(qty_parts):
+        list_data_frame.append(
+            data_frame.iloc[start:end]
+        )
+
+        start += qty_rows_per_dataframe
+        end += qty_rows_per_dataframe
+
+    if qty_over_rows > 0:
+        list_data_frame.append(
+            data_frame.iloc[start:]
+        )
+
+    return list_data_frame
 
 
 def create_optimized_table_from_csv(path: str,
@@ -87,6 +123,13 @@ def create_optimized_table_from_csv(path: str,
         )
 
     return True
+
+
+def create_index_dataframe(data_frame: pd.DataFrame,
+                           first_index: int = 0) -> list[int]:
+    list_index = [i + first_index for i in range(data_frame.shape[0])]
+
+    return list_index
 
 
 def convert_table_to_dataframe(conn_input: MockConnection,
@@ -151,7 +194,7 @@ def convert_table_to_dataframe(conn_input: MockConnection,
             )
         ])
 
-    return data_frame.reset_index().drop("index", axis=1)
+    return data_frame.reset_index(drop=True)
 
 
 def convert_column_to_float64(column_data_frame: pd.Series,

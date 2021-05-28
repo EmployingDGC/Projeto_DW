@@ -56,6 +56,11 @@ def treat_d_localildade(dados_ibge: pd.DataFrame,
         right_on="CD"
     )["CD"]
 
+    frame_d_localidade["SK_LOCALIDADE"] = utl.create_index_dataframe(
+        data_frame=frame_d_localidade,
+        first_index=1
+    )
+
     return frame_d_localidade
 
 
@@ -83,6 +88,11 @@ def treat_d_escola(escolas: pd.DataFrame) -> pd.DataFrame:
     )
 
     frame_d_escola["CD_DEPENDENCIA_ADM"] = escolas["ID_DEPENDENCIA_ADM"]
+
+    frame_d_escola["SK_ESCOLA"] = utl.create_index_dataframe(
+        data_frame=frame_d_escola,
+        first_index=1
+    )
 
     return frame_d_escola
 
@@ -127,6 +137,11 @@ def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
         DFLT.DS[0]
     )
 
+    frame_d_localidade["SK_LOCALIDADE"] = utl.create_index_dataframe(
+        data_frame=frame_d_localidade,
+        first_index=1
+    )
+
     return frame_d_localidade
 
 
@@ -143,9 +158,17 @@ def treat_all_dimensions(dados_ibge: pd.DataFrame,
 def create_all_dimensions(conn_output: MockConnection,
                           schema_name: str,
                           frames: list[pd.DataFrame],
-                          dimensions_names: list[str]) -> bool:
+                          dimensions_names: list[str],
+                          replace_table: bool = True) -> bool:
     if len(frames) != len(dimensions_names):
         return False
+
+    if replace_table:
+        utl.drop_tables(
+            conn_output=conn_output,
+            schema_name=schema_name,
+            dimensions_names=dimensions_names
+        )
 
     utl.create_schema(
         database=conn_output,
@@ -153,11 +176,18 @@ def create_all_dimensions(conn_output: MockConnection,
     )
 
     for i in range(len(dimensions_names)):
-        frames[i].to_sql(
-            con=conn_output,
-            schema=schema_name.lower(),
-            name=dimensions_names[i],
-            if_exists="replace"
+        frame_in_parts = utl.partition_data_frame(
+            data_frame=frames[i],
+            qty_parts=1000
         )
+
+        for df in frame_in_parts:
+            df.to_sql(
+                con=conn_output,
+                schema=schema_name.lower(),
+                name=dimensions_names[i],
+                if_exists="append",
+                index=False
+            )
 
     return True
