@@ -226,7 +226,8 @@ def convert_column_to_float64(column_data_frame: pd.Series,
         float(num)
         if str(num).isnumeric() else
         float(str(num).replace(",", "."))
-        if str(num).replace(",", ".").replace(".", "").isnumeric() else
+        if str(num).replace(",", ".").replace(".", "").isnumeric()
+        and str(num).replace(",", ".").count(".") == 1 else
         float(default)
     )
 
@@ -238,7 +239,8 @@ def convert_column_to_int64(column_data_frame: pd.Series,
         int(num)
         if str(num).isnumeric() else
         int(str(num).replace(",", ".").split(".")[0])
-        if str(num).replace(",", ".").replace(".", "").isnumeric() else
+        if str(num).replace(",", ".").replace(".", "").isnumeric()
+        and str(num).replace(",", ".").count(".") == 1 else
         int(default)
     )
 

@@ -37,9 +37,4 @@ if __name__ == '__main__':
     print(f"\nFato carregada em {round(time() - time_exec)} segundos\n")
     time_exec = time()
 
-    print(ft.get_fato(conn_database))
-
-    print(f"\nFato impressa em {round(time() - time_exec)} segundos\n")
-    time_exec = time()
-
     print(f"\nFinalizado com sucesso em {round(time() - time_initial)} segundos\n")
