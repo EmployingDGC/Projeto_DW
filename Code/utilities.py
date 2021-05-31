@@ -223,8 +223,10 @@ def convert_column_to_float64(column_data_frame: pd.Series,
                               default: float) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
-        float(num) if str(num).isnumeric() else
-        float(str(num).replace(",", ".")) if str(num).replace(",", ".").replace(".", "").isnumeric() else
+        float(num)
+        if str(num).isnumeric() else
+        float(str(num).replace(",", "."))
+        if str(num).replace(",", ".").replace(".", "").isnumeric() else
         float(default)
     )
 
@@ -233,8 +235,10 @@ def convert_column_to_int64(column_data_frame: pd.Series,
                             default: int) -> pd.Series:
     return column_data_frame.apply(
         lambda num:
-        int(num) if str(num).isnumeric() else
-        int(str(num).split(",")[0].split(".")[0]) if str(num).replace(",", ".").replace(".", "").isnumeric() else
+        int(num)
+        if str(num).isnumeric() else
+        int(str(num).replace(",", ".").split(".")[0])
+        if str(num).replace(",", ".").replace(".", "").isnumeric() else
         int(default)
     )
 
