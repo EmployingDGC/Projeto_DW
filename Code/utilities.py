@@ -239,6 +239,23 @@ def convert_column_to_int64(column_data_frame: pd.Series,
     )
 
 
+def add_value_to_table(conn_output: MockConnection,
+                       schema_name: str,
+                       table_name: str,
+                       values: dict[str, [str, int, float]]):
+    str_vars = ""
+    str_values = ""
+
+    for k, v in values.items():
+        str_vars += f"{k}, "
+        str_values += f"{v}, "
+
+    str_vars = str_vars[:-2]
+    str_values = str_values[:-2]
+
+    conn_output.execute(f"insert into \"{schema_name.lower()}\".\"{table_name}\" ({str_vars}) values ({str_values})")
+
+
 def create_table(conn_output: MockConnection,
                  schema_name: str,
                  table_name: str,

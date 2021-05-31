@@ -44,11 +44,7 @@ def get_csv_ts_resultado_aluno() -> pd.DataFrame:
     )
 
     return frame_ts_resultado_aluno.drop(
-        frame_ts_resultado_aluno[
-            (frame_ts_resultado_aluno["IN_SITUACAO_CENSO"] != 1) |
-            (frame_ts_resultado_aluno["IN_PREENCHIMENTO"] != 1) |
-            (frame_ts_resultado_aluno["IN_PROFICIENCIA"] != 1)
-            ].index
+        frame_ts_resultado_aluno[(frame_ts_resultado_aluno["IN_SITUACAO_CENSO"] != 1)].index
     ).reset_index(drop=True)
 
 
@@ -71,40 +67,52 @@ def treat_f_prova_br(frame_ts_resultado_aluno: pd.DataFrame,
         default=DFLT.CD[0]
     )
 
-    frame_f_prova_br["FL_SITUACAO_CENSO"] = utl.convert_column_to_boolean(
-        column_data_frame=frame_ts_resultado_aluno["IN_SITUACAO_CENSO"]
+    frame_f_prova_br["FL_SITUACAO_CENSO"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno["IN_SITUACAO_CENSO"],
+        default=DFLT.CD[2]
     )
 
-    frame_f_prova_br["FL_PREENCHIMENTO"] = utl.convert_column_to_boolean(
-        column_data_frame=frame_ts_resultado_aluno["IN_PREENCHIMENTO"]
+    frame_f_prova_br["FL_PREENCHIMENTO"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno["IN_PREENCHIMENTO"],
+        default=DFLT.CD[2]
     )
 
-    frame_f_prova_br["FL_PROFICIENCIA"] = utl.convert_column_to_boolean(
-        column_data_frame=frame_ts_resultado_aluno["IN_PROFICIENCIA"]
+    frame_f_prova_br["FL_PROFICIENCIA"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno["IN_PROFICIENCIA"],
+        default=DFLT.CD[2]
     )
 
-    frame_f_prova_br["SK_LOCALIDADE"] = frame_ts_resultado_aluno.merge(
-        dimensions[0],
-        how="inner",
-        left_on="ID_MUNICIPIO",
-        right_on="CD_MUNICIPIO"
-    )["SK_LOCALIDADE"]
+    frame_f_prova_br["SK_LOCALIDADE"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno.merge(
+            dimensions[0],
+            how="inner",
+            left_on="ID_MUNICIPIO",
+            right_on="CD_MUNICIPIO"
+        )["SK_LOCALIDADE"],
+        default=DFLT.CD[2]
+    )
 
-    frame_f_prova_br["SK_ESCOLA"] = frame_ts_resultado_aluno.merge(
-        dimensions[1],
-        how="inner",
-        left_on="ID_ESCOLA",
-        right_on="CD_ESCOLA"
-    )["SK_ESCOLA"]
+    frame_f_prova_br["SK_ESCOLA"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno.merge(
+            dimensions[1],
+            how="inner",
+            left_on="ID_ESCOLA",
+            right_on="CD_ESCOLA"
+        )["SK_ESCOLA"],
+        default=DFLT.CD[2]
+    )
 
-    frame_f_prova_br["SK_TURMA"] = frame_ts_resultado_aluno.merge(
-        dimensions[2],
-        how="inner",
-        left_on="ID_TURMA",
-        right_on="CD_TURMA"
-    )["SK_TURMA"]
+    frame_f_prova_br["SK_TURMA"] = utl.convert_column_to_int64(
+        column_data_frame=frame_ts_resultado_aluno.merge(
+            dimensions[2],
+            how="inner",
+            left_on="ID_TURMA",
+            right_on="CD_TURMA"
+        )["SK_TURMA"],
+        default=DFLT.CD[2]
+    )
 
-    return frame_f_prova_br
+    return frame_f_prova_br[[k for k in DFLT.KEYS_FATO]]
 
 
 def get_fato(conn_input: MockConnection) -> pd.DataFrame:

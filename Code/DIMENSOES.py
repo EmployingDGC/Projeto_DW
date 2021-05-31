@@ -5,166 +5,18 @@ import pandas as pd
 import utilities as utl
 import STAGES as stgs
 import DEFAULTS_VALUES as DFLT
-
-
-def treat_d_localildade(dados_ibge: pd.DataFrame,
-                        resultado_aluno: pd.DataFrame) -> pd.DataFrame:
-    frame_d_localidade = pd.DataFrame()
-
-    dados_ibge.rename(
-        columns={
-            "Cód.": "CD",
-            "Brasil, Grande Região, Unidade da Federação e Município": "DS"
-        },
-        inplace=True
-    )
-
-    frame_mu_dados_ibge = dados_ibge.query(
-        f"Nível == 'MU'"
-    )[["CD", "DS"]]
-
-    frame_uf_dados_ibge = dados_ibge.query(
-        f"Nível == 'UF'"
-    )[["CD", "DS"]]
-
-    frame_d_localidade["DS_MUNICIPIO"] = resultado_aluno.merge(
-        frame_mu_dados_ibge,
-        how="inner",
-        left_on="ID_MUNICIPIO",
-        right_on="CD"
-    )["DS"].apply(
-        lambda ds: str(ds)[:-5]
-    )
-
-    frame_d_localidade["DS_UF"] = resultado_aluno.merge(
-        frame_uf_dados_ibge,
-        how="inner",
-        left_on="ID_UF",
-        right_on="CD"
-    )["DS"]
-
-    frame_d_localidade["CD_MUNICIPIO"] = resultado_aluno.merge(
-        frame_mu_dados_ibge,
-        how="inner",
-        left_on="ID_MUNICIPIO",
-        right_on="CD"
-    )["CD"]
-
-    frame_d_localidade["CD_UF"] = resultado_aluno.merge(
-        frame_uf_dados_ibge,
-        how="inner",
-        left_on="ID_UF",
-        right_on="CD"
-    )["CD"]
-
-    frame_d_localidade.drop_duplicates(
-        subset="CD_MUNICIPIO",
-        inplace=True
-    )
-
-    frame_d_localidade["SK_LOCALIDADE"] = utl.create_index_dataframe(
-        data_frame=frame_d_localidade,
-        first_index=1
-    )
-
-    return frame_d_localidade
-
-
-def treat_d_escola(escolas: pd.DataFrame) -> pd.DataFrame:
-    frame_d_escola = pd.DataFrame()
-
-    frame_d_escola["DS_LOCALIZACAO"] = escolas["ID_LOCALIZACAO"].apply(
-        lambda num:
-        "Urbana" if num == 1 else
-        "Rural" if num == 2 else
-        DFLT.DS[0]
-    )
-
-    frame_d_escola["CD_LOCALIZACAO"] = escolas["ID_LOCALIZACAO"]
-
-    frame_d_escola["NO_ESCOLA"] = escolas["NO_ENTIDADE"]
-
-    frame_d_escola["CD_ESCOLA"] = escolas["PK_COD_ENTIDADE"]
-
-    frame_d_escola["DS_DEPENDENCIA_ADM"] = escolas["ID_DEPENDENCIA_ADM"].apply(
-        lambda num:
-        "Federal" if num == 1 else
-        "Estadual" if num == 2 else
-        "Municipal" if num == 3 else
-        "Privada" if num == 4 else
-        DFLT.DS[0]
-    )
-
-    frame_d_escola["CD_DEPENDENCIA_ADM"] = escolas["ID_DEPENDENCIA_ADM"]
-
-    frame_d_escola["SK_ESCOLA"] = utl.create_index_dataframe(
-        data_frame=frame_d_escola,
-        first_index=1
-    )
-
-    return frame_d_escola
-
-
-def treat_d_turma(resultado_aluno: pd.DataFrame) -> pd.DataFrame:
-    frame_d_turma = pd.DataFrame()
-
-    resultado_aluno["ID_TURMA"] = utl.convert_column_to_int64(
-        resultado_aluno["ID_TURMA"],
-        DFLT.CD[0]
-    )
-
-    resultado_aluno["ID_TURNO"] = utl.convert_column_to_int64(
-        resultado_aluno["ID_TURNO"],
-        DFLT.CD[0]
-    )
-
-    resultado_aluno["ID_SERIE"] = utl.convert_column_to_int64(
-        resultado_aluno["ID_SERIE"],
-        DFLT.CD[0]
-    )
-
-    frame_d_turma["CD_TURMA"] = resultado_aluno["ID_TURMA"]
-
-    frame_d_turma["CD_TURNO"] = resultado_aluno["ID_TURNO"]
-
-    frame_d_turma["CD_SERIE"] = resultado_aluno["ID_SERIE"]
-
-    frame_d_turma["DS_TURNO"] = resultado_aluno["ID_TURNO"].apply(
-        lambda num:
-        "Matutino" if num == 1 else
-        "Vespertino" if num == 2 else
-        "Noturno" if num == 3 else
-        "Intermediário" if num == 4 else
-        DFLT.DS[0]
-    )
-
-    frame_d_turma["DS_SERIE"] = resultado_aluno["ID_SERIE"].apply(
-        lambda num:
-        "4ª série / 5º ano EF" if num == 5 else
-        "8ª série / 9º ano EF" if num == 9 else
-        DFLT.DS[0]
-    )
-
-    frame_d_turma.drop_duplicates(
-        subset="CD_TURMA",
-        inplace=True
-    )
-
-    frame_d_turma["SK_TURMA"] = utl.create_index_dataframe(
-        data_frame=frame_d_turma,
-        first_index=1
-    )
-
-    return frame_d_turma
+import D_LOCALIDADE as d_loc
+import D_TURMA as d_tu
+import D_ESCOLA as d_es
 
 
 def treat_all_dimensions(dados_ibge: pd.DataFrame,
                          escolas: pd.DataFrame,
                          resultado_aluno: pd.DataFrame) -> list[pd.DataFrame]:
     return [
-        treat_d_localildade(dados_ibge, resultado_aluno),
-        treat_d_escola(escolas),
-        treat_d_turma(resultado_aluno)
+        d_loc.treat_d_localildade(dados_ibge, resultado_aluno),
+        d_es.treat_d_escola(escolas),
+        d_tu.treat_d_turma(resultado_aluno)
     ]
 
 

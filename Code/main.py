@@ -10,6 +10,7 @@ import FATO as ft
 
 if __name__ == '__main__':
     time_exec = time()
+    time_initial = time()
 
     pd.set_option("display.max_columns", None)
 
@@ -22,11 +23,23 @@ if __name__ == '__main__':
     )
 
     # stgs.run(conn_database)
+    #
+    # print(f"\nStages carregadas em {round(time() - time_exec)} segundos\n")
+    # time_exec = time()
 
     # dms.run(conn_database)
+    #
+    # print(f"\nDimensões carregadas em {round(time() - time_exec)} segundos\n")
+    # time_exec = time()
 
-    # ft.run(conn_database)
+    ft.run(conn_database)
 
-    # print(ft.get_fato(conn_database))
+    print(f"\nFato carregada em {round(time() - time_exec)} segundos\n")
+    time_exec = time()
 
-    print(f"\nFinalizado com sucesso em {round(time() - time_exec)} segundos\n")
+    print(ft.get_fato(conn_database))
+
+    print(f"\nFato impressa em {round(time() - time_exec)} segundos\n")
+    time_exec = time()
+
+    print(f"\nFinalizado com sucesso em {round(time() - time_initial)} segundos\n")
